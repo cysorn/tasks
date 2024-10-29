@@ -13,49 +13,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.tasks.entity.UserEntity;
-import com.example.tasks.repository.UserRepo;
+import com.example.tasks.exceptions.UserAlreadyExistsException;
+import com.example.tasks.service.UserService;
 
 @Controller
 @RequestMapping("/users")
 public class UserController {
 	
 	@Autowired
-	private UserRepo userRepo;
+	private UserService userService;
 	
 	@PostMapping
 	public ResponseEntity<String> registration(@RequestBody UserEntity user) {
 		try {
-			userRepo.save(user);
+			userService.registration(user);
 			return ResponseEntity.ok("User succesfully saved.");
 		}
-		catch (Exception e) {
-			return ResponseEntity.badRequest().body("Error.");
+		catch (UserAlreadyExistsException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
 	
 	@GetMapping
 	public ResponseEntity<String> getUsers() {
 		try {
-
-			String s = StreamSupport.stream(userRepo.findAll().spliterator(), false)
-		            .map(UserEntity::getUsername)
-		            .collect(Collectors.joining(", "));
-			return ResponseEntity.ok(s);
+			return ResponseEntity.ok("Currently registered users: " + userService.getRegisteredUsernames());
 		}
 		catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error.");
 		}
 	}
-	
-	@GetMapping("/test")
-	@ResponseBody
-	public String getUserss() {
-		try {
-			return "Second Ok";
-		}
-		catch (Exception e) {
-			return "Error.";
-		}
-	}
-	
 }
